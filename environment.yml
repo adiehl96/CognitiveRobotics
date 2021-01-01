@@ -1,0 +1,12 @@
+name: cogrob
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - nengo
+    - nengo-gui
+    - pylint
+    - black
+    - multimethod

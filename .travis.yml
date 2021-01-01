@@ -1,0 +1,18 @@
+# python of course and we don't need access to sudo atm
+language: python
+
+branches:
+  only:
+  - main
+
+install:
+  - pip install pylint
+  - pip install nengo
+  - pip install nengo-gui
+  - pip install multimethod
+
+# run tests
+script:
+  - pylint ./code/
+  - pylint ./color_critter.py
+  - python -m pytest --disable-warnings -v
