@@ -1,0 +1,12 @@
+[MESSAGES CONTROL]
+
+# Explanation for disabled rules:
+#
+# R1705 Unnecessary "elif" after "return" (no-else-return)
+#   This rule enforces unreadable code because it want the last return statement outside of any
+#   if else statement. Sometimes however the return statement is important in the if else.
+# E0102 function-redefined
+#   There is no native polymorphism, but the package multipledispatch
+#   introduces it, however pylint can't know that.
+
+disable=R1705,E0102
