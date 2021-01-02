@@ -13,6 +13,21 @@ MY_MAP = """
 #######
 """
 
+ANOTHER_MAP="""
+##########
+#G#     B#
+# # #### #
+#M  #    #
+### #B## #
+#Y     #R#
+## #######
+#  #    M#
+# ## ## ##
+#    #R Y#
+##########
+"""
+
+
 color_world = ColorWorld(MY_MAP)
 # Your model might not be a nengo.Netowrk() - SPA is permitted
 model = nengo.Network()
