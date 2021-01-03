@@ -98,7 +98,7 @@ class World(metaclass=multimeta):
         if not hasattr(self.Cell, "save"):
             return
         if isinstance(f, type("")):
-            f = open(file_name, "rw+")
+            f = open(file_name, "r+")
 
         total = ""
         for j in range(self.height):
@@ -117,7 +117,7 @@ class World(metaclass=multimeta):
             return
         if filename:
             if isinstance(filename, type("")):
-                filename = open(filename, "rw+")
+                filename = open(filename, "r+")
             lines = filename.readlines()
         else:
             lines = map.splitlines()
