@@ -1,3 +1,11 @@
+# MacOS system files
+*.DS_Store
+
+
+# nengo visualization files
+*.cfg
+
+# IDE Settings
 .vscode
 
 # Byte-compiled / optimized / DLL files

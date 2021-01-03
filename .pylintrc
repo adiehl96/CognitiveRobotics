@@ -10,3 +10,6 @@
 #   introduces it, however pylint can't know that.
 
 disable=R1705,E0102
+
+[MASTER]
+ignore=color_world
