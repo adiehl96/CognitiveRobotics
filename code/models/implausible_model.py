@@ -1,11 +1,8 @@
-from code.color_world.grid_world.grid_node import GridNode
 import nengo
 import numpy as np
 
 
-def setup_implausible_model(model, color_world):
-    body = color_world.agent
-    color_world = color_world.world
+def setup_implausible_model(model, color_world, body, grid):
 
     def move(t, x):
         speed, rotation, dont = x
@@ -40,7 +37,7 @@ def setup_implausible_model(model, color_world):
         return out
 
     with model:
-        env = GridNode(color_world, delta_t=0.005, label="environment")
+        env = grid.GridNode(color_world, dt=0.005)
 
         stim_radar = nengo.Node(detect)
 

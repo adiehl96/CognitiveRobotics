@@ -10,9 +10,8 @@ install:
   - pip install nengo
   - pip install nengo-gui
   - pip install multimethod
+  - pip install black
 
 # run tests
 script:
-  - pylint ./code/
-  - pylint ./color_critter.py
-  - python -m pytest --disable-warnings -v
+  - black ./color_critter.py
