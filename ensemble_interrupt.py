@@ -87,13 +87,6 @@ def movement_func(x):
     spd = x[1] - 0.5
     return spd, turn
 
-
-#if you wanted to know the position in the world, this is how to do it
-#The first two dimensions are X,Y coordinates, the third is the orientation
-#(plotting XY value shows the first two dimensions)
-def position_func(t):
-    return body.x / world.width * 2 - 1, 1 - body.y/world.height * 2, body.dir / world.directions
-
 # Get a list where the index corresponding to a certain color is 1 if the
 # agent is currently standing on that color
 def color_detect(t):
@@ -118,8 +111,6 @@ with model:
     #the movement function is only driven by information from the radar
     movement = nengo.Node(move, size_in=2)
     nengo.Connection(interrupt, movement, function=lambda x: (x[0]*x[2], x[1]*x[2]))  
-
-    position = nengo.Node(position_func)
 
     current_color = nengo.Node(color_detect)
     
