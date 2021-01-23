@@ -87,12 +87,6 @@ def movement_func(x):
     spd = x[1] - 0.5
     return spd, turn
 
-def move_with_interrupt(x):
-    spd, turn, dont = x
-    if dont > 0.8:
-        return 0, 0
-    else:
-        return spd, turn
 
 #if you wanted to know the position in the world, this is how to do it
 #The first two dimensions are X,Y coordinates, the third is the orientation
@@ -118,12 +112,12 @@ with model:
 
     # Implement a stopper in between that routes the signal from radar to 
     # movement, but stops on a given signal from stop_ens
-    interrupt = nengo.Ensemble(500, 3, radius=4)
+    interrupt = nengo.Ensemble(1500, 3, radius=4)
     nengo.Connection(radar, interrupt[0:2], function=movement_func)
         
     #the movement function is only driven by information from the radar
     movement = nengo.Node(move, size_in=2)
-    nengo.Connection(interrupt, movement, function=move_with_interrupt)  
+    nengo.Connection(interrupt, movement, function=lambda x: (x[0]*x[2], x[1]*x[2]))  
 
     position = nengo.Node(position_func)
 
@@ -157,7 +151,7 @@ with model:
     nengo.Connection(current_color[5], yellow_integrator, 
         transform=mau, synapse=tau)
 
-    stop_ens = nengo.Ensemble(200, 1, radius=1)
+    stop_ens = nengo.Ensemble(1000, 1, radius=1)
 
     pau = 1
     nengo.Connection(green_integrator, stop_ens,
@@ -171,12 +165,7 @@ with model:
     nengo.Connection(yellow_integrator, stop_ens,
         transform=pau, synapse=tau)
 
-    stop_integrator = nengo.Ensemble(200,1)
-    nengo.Connection(stop_integrator, stop_integrator, synapse=0.01, transform=0.1)
-    nengo.Connection(stop_ens, stop_integrator)
-
-    # Connect the accumulated signal to the interrupt to inhibit the signal
-    nengo.Connection(stop_integrator, interrupt[2])
+    nengo.Connection(stop_ens, interrupt[2], function=lambda x: 0 if x>0.8 else 1)
 
     # Input the number of colors
     input_node = nengo.Node([4])
