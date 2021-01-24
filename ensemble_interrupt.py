@@ -60,7 +60,7 @@ class Cell(grid.Cell):
             self.cellcolor = 5
 
 
-world = grid.World(Cell, map=mymap, directions=4)
+world = grid.World(Cell, map=theMap, directions=4)
 
 body = grid.ContinuousAgent()
 world.add(body, x=1, y=2, dir=2)
@@ -72,11 +72,11 @@ def move(t, x):
     # Limit max speed and increase max rotation to give agent more chance to
     # move into different directions
     max_speed = 5.0  # previously 20
-    min_speed = 0.5  # minimum speed
+    min_speed = 0.1  # minimum speed
     max_rotate = 25.0  # previously 10
-    print(speed > min_speed)
+    print(abs(speed) > min_speed)
     body.turn(rotation * dt * max_rotate)
-    body.go_forward(speed * dt * max_speed if speed > min_speed else 0)
+    body.go_forward(speed * dt * max_speed if abs(speed) > min_speed else 0)
 
 
 # Three sensors for distance to the walls
@@ -111,12 +111,12 @@ with model:
 
     # Implement a stopper in between that routes the signal from radar to
     # movement, but stops on a given signal from stop_ens
-    interrupt = nengo.Ensemble(1500, 3, radius=4)
+    interrupt = nengo.Ensemble(500, 2, radius=4)
     nengo.Connection(radar, interrupt[0:2], function=movement_func)
 
     # the movement function is only driven by information from the radar
     movement = nengo.Node(move, size_in=2)
-    nengo.Connection(interrupt, movement, function=lambda x: (x[0] * x[2], x[1] * x[2]))
+    nengo.Connection(interrupt, movement)
 
     current_color = nengo.Node(color_detect)
 
@@ -145,14 +145,18 @@ with model:
 
     stop_ens = nengo.Ensemble(1000, 1, radius=5)
 
-    pau = 1
-    nengo.Connection(green_integrator, stop_ens, transform=pau, synapse=tau)
-    nengo.Connection(red_integrator, stop_ens, transform=pau, synapse=tau)
-    nengo.Connection(blue_integrator, stop_ens, transform=pau, synapse=tau)
-    nengo.Connection(magenta_integrator, stop_ens, transform=pau, synapse=tau)
-    nengo.Connection(yellow_integrator, stop_ens, transform=pau, synapse=tau)
+    nengo.Connection(green_integrator, stop_ens, synapse=tau)
+    nengo.Connection(red_integrator, stop_ens, synapse=tau)
+    nengo.Connection(blue_integrator, stop_ens, synapse=tau)
+    nengo.Connection(magenta_integrator, stop_ens, synapse=tau)
+    nengo.Connection(yellow_integrator, stop_ens, synapse=tau)
 
-    nengo.Connection(stop_ens, interrupt[2], function=lambda x: 0 if x > 0.5 else 1)
+    nengo.Connection(
+        stop_ens,
+        interrupt.neurons,
+        function=lambda x: 1 if x > 0.7 else 0,
+        transform=[[-3.5]] * 500,
+    )
 
     # Input the number of colors
     input_node = nengo.Node([4])
