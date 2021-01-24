@@ -73,7 +73,7 @@ def move(t, x):
     # move into different directions
     max_speed = 5.0  # previously 20
     min_speed = 0.1  # minimum speed
-    max_rotate = 25.0  # previously 10
+    max_rotate = 20.0  # previously 10
     print(abs(speed) > min_speed)
     body.turn(rotation * dt * max_rotate)
     body.go_forward(speed * dt * max_speed if abs(speed) > min_speed else 0)
@@ -81,15 +81,9 @@ def move(t, x):
 
 # Three sensors for distance to the walls
 def detect(t):
-    angles = (np.linspace(-0.5, 0.5, 3) + body.dir) % world.directions
-    return [body.detect(d, max_distance=4)[0] for d in angles]
-
-
-# A basic movement function that just avoids walls based on distance
-def movement_func(x):
-    turn = x[2] - x[0]
-    spd = x[1] - 0.5
-    return spd, turn
+    directions = (np.linspace(-0.5, 0.5, 3) + body.dir) % world.directions
+    print(directions)
+    return [body.detect(d, max_distance=4)[0] for d in directions]
 
 
 # Get a list where the index corresponding to a certain color is 1 if the
@@ -106,13 +100,17 @@ with model:
 
     stim_radar = nengo.Node(detect)
 
-    radar = nengo.Ensemble(n_neurons=500, dimensions=3, radius=4)
-    nengo.Connection(stim_radar, radar)
+    rotation = nengo.Ensemble(n_neurons=500, dimensions=2, radius=4)
+    speed = nengo.Ensemble(n_neurons=500, dimensions=1, radius=4)
+    nengo.Connection(stim_radar[1], speed)
+    nengo.Connection(stim_radar[0], rotation[0])
+    nengo.Connection(stim_radar[2], rotation[1])
 
     # Implement a stopper in between that routes the signal from radar to
     # movement, but stops on a given signal from stop_ens
     interrupt = nengo.Ensemble(500, 2, radius=4)
-    nengo.Connection(radar, interrupt[0:2], function=movement_func)
+    nengo.Connection(speed, interrupt[0], function=lambda x: x - 0.5)
+    nengo.Connection(rotation, interrupt[1], function=lambda x: x[1] - x[0])
 
     # the movement function is only driven by information from the radar
     movement = nengo.Node(move, size_in=2)
@@ -145,11 +143,30 @@ with model:
 
     stop_ens = nengo.Ensemble(1000, 1, radius=5)
 
-    nengo.Connection(green_integrator, stop_ens, synapse=tau)
-    nengo.Connection(red_integrator, stop_ens, synapse=tau)
-    nengo.Connection(blue_integrator, stop_ens, synapse=tau)
-    nengo.Connection(magenta_integrator, stop_ens, synapse=tau)
-    nengo.Connection(yellow_integrator, stop_ens, synapse=tau)
+    nengo.Connection(
+        green_integrator,
+        stop_ens,
+        synapse=tau,
+        function=lambda x: 0.9 if x > 0.7 else 0,
+    )
+    nengo.Connection(
+        red_integrator, stop_ens, synapse=tau, function=lambda x: 0.9 if x > 0.7 else 0
+    )
+    nengo.Connection(
+        blue_integrator, stop_ens, synapse=tau, function=lambda x: 0.9 if x > 0.7 else 0
+    )
+    nengo.Connection(
+        magenta_integrator,
+        stop_ens,
+        synapse=tau,
+        function=lambda x: 0.9 if x > 0.7 else 0,
+    )
+    nengo.Connection(
+        yellow_integrator,
+        stop_ens,
+        synapse=tau,
+        function=lambda x: 0.9 if x > 0.7 else 0,
+    )
 
     nengo.Connection(
         stop_ens,
