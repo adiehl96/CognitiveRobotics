@@ -74,7 +74,6 @@ def move(t, x):
     max_speed = 5.0  # previously 20
     min_speed = 0.01  # minimum speed
     max_rotate = 25.0  # previously 10
-    print(abs(speed) > min_speed)
     body.turn(rotation * dt * max_rotate)
     body.go_forward(speed * dt * max_speed if abs(speed) > min_speed else 0)
 
@@ -82,7 +81,6 @@ def move(t, x):
 # Three sensors for distance to the walls
 def detect(t):
     directions = (np.linspace(-0.5, 0.5, 3) + body.dir) % world.directions
-    print(directions)
     return [body.detect(d, max_distance=4)[0] for d in directions]
 
 
@@ -99,7 +97,6 @@ with model:
     env = grid.GridNode(world, dt=0.005)
 
     stim_radar = nengo.Node(detect)
-    rotation_interrupt = nengo.Ensemble(n_neurons=200, dimensions=1, radius=1)
     rotation = nengo.Ensemble(n_neurons=500, dimensions=2, radius=4)
     speed = nengo.Ensemble(n_neurons=500, dimensions=1, radius=4)
     nengo.Connection(stim_radar[1], speed)
@@ -119,11 +116,11 @@ with model:
     current_color = nengo.Node(color_detect)
 
     # Integrators for the individual colors
-    green_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
-    blue_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
-    red_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
-    yellow_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
-    magenta_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
+    green_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.8)
+    blue_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.8)
+    red_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.8)
+    yellow_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.8)
+    magenta_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.8)
 
     # Recurrent connections
     tau = 0.1
@@ -176,7 +173,7 @@ with model:
     )
 
     # Input the number of colors
-    input_node = nengo.Node([4])
+    input_node = nengo.Node([5])
     nengo.Connection(input_node, stop_ens, transform=-1)
 
     continuous_one = nengo.Node([1])
