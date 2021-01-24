@@ -78,13 +78,6 @@ def detect(t):
     return [body.detect(d, max_distance=4)[0] for d in angles]
 
 
-# A basic movement function that just avoids walls based on distance
-def movement_func(x):
-    turn = x[2] - x[0]
-    spd = x[1] - 0.5
-    return spd, turn
-
-
 # Get a list where the index corresponding to a certain color is 1 if the
 # agent is currently standing on that color
 def color_detect(t):
@@ -100,10 +93,15 @@ with model:
 
     # --- Environment & Radar ---#
     env = grid.GridNode(world, dt=0.005)
-    stim_radar = nengo.Node(detect)
-    radar = nengo.Ensemble(n_neurons=500, dimensions=3, radius=4)
-    nengo.Connection(stim_radar, radar)
     movement = nengo.Node(move, size_in=2)
+    stim_radar = nengo.Node(detect)
+    rotation = nengo.Ensemble(n_neurons=500, dimensions=2, radius=4)
+    speed = nengo.Ensemble(n_neurons=500, dimensions=1, radius=4)
+    nengo.Connection(stim_radar[1], speed)
+    nengo.Connection(stim_radar[0], rotation[0])
+    nengo.Connection(stim_radar[2], rotation[1])
+    nengo.Connection(speed, movement[0], function=lambda x: x - 0.5)
+    nengo.Connection(rotation, movement[1], function=lambda x: x[1] - x[0])
 
     # --- Visual Input ---#
     model.color_input = spa.State(D, vocab=color_vocab)
@@ -177,12 +175,20 @@ with model:
 
     # --- Stop Mechanism ---#
     user_input = nengo.Node([4])
-    stop_ens = nengo.Ensemble(1000, 1, radius=1)
-    color_pass_through = nengo.Ensemble(1000, 10, radius=1)
-    interrupt = nengo.Ensemble(1500, 3, radius=4)
-    nengo.Connection(radar, interrupt[0:2], function=movement_func)
-    nengo.Connection(interrupt, movement, function=lambda x: (x[0] * x[2], x[1] * x[2]))
-    nengo.Connection(stop_ens, interrupt[2], function=lambda x: 0 if x > 0.8 else 1)
+    stop_ens = nengo.Ensemble(1000, 1, radius=5)
+    color_pass_through = nengo.Ensemble(1000, 10, radius=10)
+    nengo.Connection(
+        stop_ens,
+        speed.neurons,
+        function=lambda x: 1 if x > 0.8 else 0,
+        transform=[[-3.5]] * 500,
+    )
+    nengo.Connection(
+        stop_ens,
+        rotation.neurons,
+        function=lambda x: 1 if x > 0.8 else 0,
+        transform=[[-3.5]] * 500,
+    )
     nengo.Connection(user_input, stop_ens, transform=-1)
     nengo.Connection(model.green_memory.output, color_pass_through[0:2])
     nengo.Connection(model.red_memory.output, color_pass_through[2:4])
@@ -216,12 +222,12 @@ with model:
     )
 
     actions = spa.Actions(
-        "dot(color_input, GREEN) --> green_memory=TRUE",
-        "dot(color_input, RED) --> red_memory=TRUE",
-        "dot(color_input, BLUE) --> blue_memory=TRUE",
-        "dot(color_input, MAGENTA) --> magenta_memory=TRUE",
-        "dot(color_input, YELLOW) --> yellow_memory=TRUE",
-        "dot(color_input, NONE) --> yellow_memory=0.25*FALSE, magenta_memory=0.25*FALSE",
+        "dot(color_input, GREEN) --> green_memory=10*TRUE",
+        "dot(color_input, RED) --> red_memory=10*TRUE",
+        "dot(color_input, BLUE) --> blue_memory=10*TRUE",
+        "dot(color_input, MAGENTA) --> magenta_memory=10*TRUE",
+        "dot(color_input, YELLOW) --> yellow_memory=10*TRUE",
+        "dot(color_input, NONE) --> yellow_memory=0.1*FALSE, magenta_memory=0.1*FALSE, blue_memory=0.1*FALSE, red_memory=0.1*FALSE, green_memory=0.1*FALSE",
         "0.5 --> ",
     )
 

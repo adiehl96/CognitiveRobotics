@@ -21,7 +21,7 @@ theMap = """
 ## #######
 #  #    M#
 # ## ## ##
-#    #R Y#
+#G   #R Y#
 ##########
 """
 
@@ -72,8 +72,8 @@ def move(t, x):
     # Limit max speed and increase max rotation to give agent more chance to
     # move into different directions
     max_speed = 5.0  # previously 20
-    min_speed = 0.1  # minimum speed
-    max_rotate = 20.0  # previously 10
+    min_speed = 0.01  # minimum speed
+    max_rotate = 25.0  # previously 10
     print(abs(speed) > min_speed)
     body.turn(rotation * dt * max_rotate)
     body.go_forward(speed * dt * max_speed if abs(speed) > min_speed else 0)
@@ -99,7 +99,7 @@ with model:
     env = grid.GridNode(world, dt=0.005)
 
     stim_radar = nengo.Node(detect)
-
+    rotation_interrupt = nengo.Ensemble(n_neurons=200, dimensions=1, radius=1)
     rotation = nengo.Ensemble(n_neurons=500, dimensions=2, radius=4)
     speed = nengo.Ensemble(n_neurons=500, dimensions=1, radius=4)
     nengo.Connection(stim_radar[1], speed)
@@ -119,11 +119,11 @@ with model:
     current_color = nengo.Node(color_detect)
 
     # Integrators for the individual colors
-    green_integrator = nengo.Ensemble(n_neurons=200, dimensions=1)
-    blue_integrator = nengo.Ensemble(n_neurons=200, dimensions=1)
-    red_integrator = nengo.Ensemble(n_neurons=200, dimensions=1)
-    yellow_integrator = nengo.Ensemble(n_neurons=200, dimensions=1)
-    magenta_integrator = nengo.Ensemble(n_neurons=200, dimensions=1)
+    green_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
+    blue_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
+    red_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
+    yellow_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
+    magenta_integrator = nengo.Ensemble(n_neurons=200, dimensions=1, radius=0.9)
 
     # Recurrent connections
     tau = 0.1
